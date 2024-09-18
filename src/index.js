@@ -89,7 +89,7 @@ server.get("/marcas/:id", async (req, res) => {
     connection.end();
 
     res.status(200).json({
-      info: "sucess",
+      status: "sucess",
       results: result,
     });
   } catch (err) {
@@ -99,4 +99,25 @@ server.get("/marcas/:id", async (req, res) => {
       message: "Internal server error",
     });
   }
+});
+
+server.put("/marcas/:id", async (req, res) => {
+  const id = req.params.id;
+  const { nombre, logo_url } = req.body;
+  const connection = await getDBConnection();
+
+  if (nombre) {
+    const queryNombre = "UPDATE marcas SET nombre = ? WHERE id_marca=?";
+    const [resultname] = await connection.query(queryNombre, [nombre, id]);
+  }
+  if (logo_url) {
+    const queryLogo = "UPDATE marcas SET logo_url = ? WHERE id_marca=?";
+    const [resultLogo] = await connection.query(queryLogo, [logo_url, id]);
+  }
+  connection.end();
+
+  res.status(200).json({
+    status: "sucess",
+    message: "Recurso actualizado",
+  });
 });
