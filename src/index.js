@@ -11,7 +11,7 @@ server.use(express.json());
 
 server.set("view engine", "ejs");
 
-const port = 5001;
+const port = process.env.PORT;
 server.listen(port, () => {
   console.log("Server is running on port http://localhost:" + port);
 });
@@ -20,8 +20,8 @@ async function getDBConnection() {
   const connection = await mysql.createConnection({
     host: "localhost",
     database: "shoestore",
-    user: "root",
-    password: "Ginackck",
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
   });
   connection.connect();
   return connection;
@@ -120,4 +120,41 @@ server.put("/marcas/:id", async (req, res) => {
     status: "sucess",
     message: "Recurso actualizado",
   });
+});
+
+server.delete("/marcas/:id", async (req, res) => {
+  const id = req.params.id;
+  const queryDelete = "DELETE FROM marcas WHERE id_marca=?";
+  const connection = await getDBConnection();
+  const [result] = await connection.query(queryDelete, [id]);
+  connection.end();
+
+  if (result.affectedRows > 0) {
+    res.status(200).json({
+      status: "success",
+      message: "elemento eliminado",
+    });
+  } else {
+    res.status(500).json({
+      status: "error",
+      message: "elemento no eliminado",
+    });
+  }
+});
+
+server.get("/web/marcas", async (req, res) => {
+  try {
+    const connection = await getDBConnection();
+    const queryMarcas = "SELECT * FROM marcas";
+    const [result] = await connection.query(queryMarcas);
+
+    connection.end();
+
+    res.status(200).render("brands", { marcas: result });
+  } catch (err) {
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
 });
